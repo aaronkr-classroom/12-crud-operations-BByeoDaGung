@@ -14,8 +14,13 @@ const express = require("express"), // express를 요청
  */
 const mongoose = require("mongoose"); // mongoose를 요청
 // 데이터베이스 연결 설정
-mongoose.connect("mongodb://127.0.0.1:27017/ut-nodejs", {
-  useNewUrlParser: true,
+const mongoose = require("mongoose");
+mongoose.connect(
+  "mongodb+srv://choys:JapurFJhWUDgdWXZ@bbyeodagung.erqm11u.mongodb.net/?retryWrites=true&w=majority&appName=BByeoDaGung"
+);
+const db = mongoose.connection;
+db.once("open", () => {
+  console.log("Connected to MONGODB!!!");
 });
 
 app.set("port", process.env.PORT || 3000);
