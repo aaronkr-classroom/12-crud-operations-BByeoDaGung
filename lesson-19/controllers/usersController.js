@@ -1,4 +1,3 @@
-// controllers/usersController.js
 "use strict";
 
 /**
@@ -10,14 +9,14 @@ const User = require("../models/User"); // 사용자 모델 요청
 
 module.exports = {
   index: (req, res, next) => {
-    User.find() // index 액션에서만 퀴리 실행
+    User.find() // index 액션에서만 쿼리 실행
       .then((users) => {
         // 사용자 배열로 index 페이지 렌더링
-        res.locals.users = users; // 응답상에서 사용자 데이터를 저장하고 다음 미들웨어 함수 호출
+        res.locals.users = users; // 응답에서 사용자 데이터를 저장하고 다음 미들웨어 함수 호출
         next();
       })
       .catch((error) => {
-        // 로그 메시지를 출력하고 홈페이지로 리디렉션
+        // 로그 메시지를 출력하고 에러를 처리
         console.log(`Error fetching users: ${error.message}`);
         next(error); // 에러를 캐치하고 다음 미들웨어로 전달
       });
@@ -40,36 +39,34 @@ module.exports = {
   new: (req, res) => {
     res.render("users/new");
   },
-
-  // 사용자를 데이터베이스에 저장하기 위한 create 액션 추가
   create: (req, res, next) => {
+    console.log(req.body); // req.body 내용을 출력하여 확인
     let userParams = {
       name: {
-        first: req.body.first,
-        last: req.body.last,
+        first: req.body.name ? req.body.name.first : "",
+        last: req.body.name ? req.body.name.last : "",
       },
-      email: req.body.email,
-      username: req.body.username,
-      password: req.body.password,
-      profileImg: req.body.profileImg,
+      email: req.body.email || "",
+      username: req.body.username || "",
+      password: req.body.password || "",
+      profileImg: req.body.profileImg || "",
     };
-    // 폼 파라미터로 사용자 생성
     User.create(userParams)
-      .then((user) => {
+      .then(user => {
+        console.log(`Created user: ${user.name.first} ${user.name.last}`);
         res.locals.redirect = "/users";
         res.locals.user = user;
         next();
       })
-      .catch((error) => {
-        console.log(`Error saving user: ${error.message}`);
+      .catch(error => {
+        console.log(`Error creating user: ${error.message}`);
+        res.locals.redirect = "/users/new";
         next(error);
       });
   },
-
-  // 분리된 redirectView 액션에서 뷰 렌더링
   redirectView: (req, res, next) => {
-    let redirectPath = res.locals.redirect;
-    if (redirectPath) res.redirect(redirectPath);
+    let path = res.locals.redirect;
+    if (path) res.redirect(path);
     else next();
   },
 
@@ -84,36 +81,18 @@ module.exports = {
    * userController.js에서 특정 사용자에 대한 show 액션 추가
    */
   show: (req, res, next) => {
-    let userId = req.params.id; // request params로부터 사용자 ID 수집
-    User.findById(userId) // ID로 사용자 찾기
-      .then((user) => {
-        res.locals.user = user; // 응답 객체를 통해 다음 믿들웨어 함수로 사용자 전달
+    let userId = req.params.id;
+    User.findById(userId)
+      .then(user => {
+        res.locals.user = user;
         next();
       })
-      .catch((error) => {
-        console.log(`Error fetching user by ID: ${error.message}`);
-        next(error); // 에러를 로깅하고 다음 함수로 전달
+      .catch(error => {
+        console.log(`Error fetching user: ${error.message}`);
+        next(error);
       });
   },
-
-  // show 뷰의 렌더링
   showView: (req, res) => {
     res.render("users/show");
-  },
-
-  /**
-   * Listing 20.6 (p. 294)
-   * edit와 update 액션 추가
-   */
-  /**
-   * @TODO: edit, update 액션 추가
-   */
-
-  /**
-   * Listing 20.9 (p. 298)
-   * delete 액션의 추가
-   */
-  /**
-   * @TODO: delete 액션 추가
-   */
+  }
 };
